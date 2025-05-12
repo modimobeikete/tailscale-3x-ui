@@ -1,25 +1,32 @@
 #!/bin/sh
 
+# 启动Tailscale
 /app/tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
 /app/tailscale up --auth-key=${TAILSCALE_AUTHKEY} --hostname=cloudrun-app --ssh --accept-routes
-echo Tailscale started
-ALL_PROXY=socks5://localhost:1055/
 
-# Download x-ui with error checking
-echo "Downloading x-ui..."
+# 等待Tailscale连接
+echo "Waiting for Tailscale to connect..."
+while ! tailscale status; do
+  sleep 5
+done
+echo "Tailscale connected"
+
+# 设置代理
+export ALL_PROXY=socks5://localhost:1055/
+
+# 下载并安装x-ui
+echo "Downloading and installing x-ui..."
 cd /root/
 if ! wget --no-check-certificate https://github.com/MHSanaei/3x-ui/releases/latest/download/x-ui-linux-amd64.tar.gz; then
     echo "Failed to download x-ui package"
     exit 1
 fi
 
-# Verify the downloaded file exists and is not empty
 if [ ! -s x-ui-linux-amd64.tar.gz ]; then
     echo "Downloaded file is empty or doesn't exist"
     exit 1
 fi
 
-# Extract and install
 echo "Installing x-ui..."
 rm -rf x-ui/ /usr/local/x-ui/ /usr/bin/x-ui
 if ! tar zxvf x-ui-linux-amd64.tar.gz; then
@@ -46,4 +53,12 @@ if ! systemctl restart x-ui; then
 fi
 
 echo "x-ui installation completed successfully"
-tail -f /dev/null
+
+# 健康检查端点
+echo "Starting health check server on port $PORT"
+while true; do { echo -e "HTTP/1.1 200 OK\n\n$(date)"; } | nc -l -p $PORT; done &
+
+# 保持容器运行
+while true; do
+  sleep 60
+done
