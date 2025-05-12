@@ -46,3 +46,4 @@ if ! systemctl restart x-ui; then
 fi
 
 echo "x-ui installation completed successfully"
+wait
