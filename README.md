@@ -15,7 +15,7 @@ TAILSCALE_AUTHKEY
 
 ```
 docker run -d \
-  -e TAILSCALE_AUTHKEY=tskey-auth-kwc6XgoapA21CNTRL-JdcpFVXq1CRMnc36Fa8iBRNzWoSiBXLx \
+  -e TAILSCALE_AUTHKEY=（你自己的认证密钥） \
   -p 2053:2053 \
   --cap-add=NET_ADMIN \
   --name 3docker \
@@ -25,12 +25,16 @@ docker run -d \
 ## 特殊容器
 
 如果说容器是要指定存储空间的（如ClawRun 必须指明存储空间不然无限重启的），目前所用到的目录如下：
+
+
+```
 /var/lib/tailscale
 /etc/x-ui/
 /root/cert/
 /usr/bin/x-ui
 /etc/systemd/system/
 /usr/local/
+```
 
 ### 缺点
 
